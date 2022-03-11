@@ -8,7 +8,16 @@ class DropBoxController {
         this.nameFileEl = this.snackModalEl.querySelector('.filename');
         this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
 
+        this.connectFirebase();
         this.initEvents();
+    }
+    connectFirebase(){
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
     }
 
     initEvents(){
