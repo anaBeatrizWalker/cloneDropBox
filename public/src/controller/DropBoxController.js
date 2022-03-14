@@ -28,21 +28,23 @@ class DropBoxController {
 
         //Mostrar carregamento de arquivo
         this.inputFilesEl.addEventListener('change', event => {
+
+            this.btnSendFieldEl.disabled = true
             
             this.uploadTask(event.target.files).then(responses => { //respostas de todas as promises
                 responses.forEach(resp => {
-                    //Salva no firebase
                     console.log(resp.files['input-file'])
 
+                    //Salva no firebase
                     this.getFirebaseRef().push().set(resp.files['input-file'])
                 })
-
-                this.modalShow(false)
+                this.uploadComplete()
+            }).catch(err => {
+                this.uploadComplete()
+                console.error(err)
             })
 
             this.modalShow()
-
-            this.inputFilesEl.value = ''
         })
     }
 
@@ -53,6 +55,14 @@ class DropBoxController {
 
     modalShow(show = true){
         this.snackModalEl.style.display = (show) ? 'block' : 'none'
+    }
+
+    uploadComplete(){
+        this.modalShow(false)
+
+        this.inputFilesEl.value = ''
+
+        this.btnSendFieldEl.disabled = false
     }
 
     //Envia um ou vários arquivos com ajax
