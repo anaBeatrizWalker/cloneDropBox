@@ -1,13 +1,18 @@
 class DropBoxController {
     constructor(){
 
+        this.onselectionchange = new Event('selectionchange') //criando evento de mudança de seleção
+
         this.btnSendFieldEl = document.querySelector('#btn-send-file');
         this.inputFilesEl = document.querySelector('#files');
         this.snackModalEl = document.querySelector('#react-snackbar-root');
         this.progressBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
         this.nameFileEl = this.snackModalEl.querySelector('.filename');
         this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
-        this.listFileEl = document.querySelector("#list-of-files-and-directories")
+        this.listFileEl = document.querySelector("#list-of-files-and-directories");
+        this.btnNewFolder = document.querySelector("#btn-new-folder");
+        this.btnRename = document.querySelector("#btn-rename");
+        this.btnDelete = document.querySelector("#btn-delete");
 
         this.connectFirebase();
         this.initEvents();
@@ -16,20 +21,37 @@ class DropBoxController {
     connectFirebase(){
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBBa_hcm2pSEzTqi3aOIIkuWvn2pTYtLwI",
-            authDomain: "dropbox-clone-d41e1.firebaseapp.com",
-            databaseURL: "https://dropbox-clone-d41e1-default-rtdb.firebaseio.com",
-            projectId: "dropbox-clone-d41e1",
-            storageBucket: "dropbox-clone-d41e1.appspot.com",
-            messagingSenderId: "742196552399",
-            appId: "1:742196552399:web:c8816842143576d7018dba",
-            measurementId: "G-E2FZTFRCYR"
+
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
     }
+    getSelection(){
+        //retorna todos os itens (arquivos) selecionados pelo usuário
+        return this.listFileEl.querySelectorAll('.selected')
+    }
 
     initEvents(){
+        this.listFileEl.addEventListener('selectionchange', e=>{ //realiza as mudanças de seleção dos arquivos
+
+            switch(this.getSelection().length){ //verifica a quantidade de itens selecionados
+
+                case 0: //0 itens selecionados = oculta excluir e renomear
+                    this.btnDelete.style.display = "none";
+                    this.btnRename.style.display = "none";
+                break;
+                
+                case 1: //1 item selecionados = mostra excluir e renomear
+                    this.btnDelete.style.display = "block";
+                    this.btnRename.style.display = "block";
+                break;
+                
+                default: //>1 item = mostra excluir e oculta renomear
+                    this.btnDelete.style.display = "block";
+                    this.btnRename.style.display = "none";
+            }
+        })
+
         //Botão Enviar Arquivos
         this.btnSendFieldEl.addEventListener('click', event => {
             this.inputFilesEl.click();
@@ -384,6 +406,8 @@ class DropBoxController {
                             el.classList.add('selected')
                         }
                     })
+                    this.listFileEl.dispatchEvent(this.onselectionchange) //avisa que aconteceu uma mudança de seleção nos arquivos
+
                     return true //para a execução
                 }
             }
@@ -397,6 +421,8 @@ class DropBoxController {
                 })
             } 
             li.classList.toggle('selected') //adiciona a classe de estilo css só do li clicado
+
+            this.listFileEl.dispatchEvent(this.onselectionchange) //avisa que aconteceu uma mudança de seleção nos arquivos
         })
     }
 }
