@@ -21,7 +21,14 @@ class DropBoxController {
     connectFirebase(){
         // Your web app's Firebase configuration
         const firebaseConfig = {
-
+            apiKey: "AIzaSyBBa_hcm2pSEzTqi3aOIIkuWvn2pTYtLwI",
+            authDomain: "dropbox-clone-d41e1.firebaseapp.com",
+            databaseURL: "https://dropbox-clone-d41e1-default-rtdb.firebaseio.com",
+            projectId: "dropbox-clone-d41e1",
+            storageBucket: "dropbox-clone-d41e1.appspot.com",
+            messagingSenderId: "742196552399",
+            appId: "1:742196552399:web:c8816842143576d7018dba",
+            measurementId: "G-E2FZTFRCYR"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -49,6 +56,23 @@ class DropBoxController {
                 default: //>1 item = mostra excluir e oculta renomear
                     this.btnDelete.style.display = "block";
                     this.btnRename.style.display = "none";
+            }
+        })
+        //Renomear arquivo
+        this.btnRename.addEventListener('click', e =>{
+            
+            let li = this.getSelection()[0]
+
+            //Pegar o nome do arquivo formato json
+            let file = JSON.parse(li.dataset.file)
+
+            let name = prompt("Renomear o arquivo: ", file.originalFilename)
+
+            if(name){//se tem algum conteúdo
+
+                file.originalFilename = name //recebe o novo nome do arquivo
+                
+                this.getFirebaseRef().child(li.dataset.key).set(file) //encontra o key do arquivo; substitui e salva o nome
             }
         })
 
@@ -181,6 +205,7 @@ class DropBoxController {
         let li = document.createElement('li')
 
         li.dataset.key = key 
+        li.dataset.file = JSON.stringify(file)
 
         li.innerHTML = ` 
                 ${this.getFileIconView(file)}
