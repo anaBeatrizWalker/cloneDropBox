@@ -21,14 +21,7 @@ class DropBoxController {
     connectFirebase(){
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBBa_hcm2pSEzTqi3aOIIkuWvn2pTYtLwI",
-            authDomain: "dropbox-clone-d41e1.firebaseapp.com",
-            databaseURL: "https://dropbox-clone-d41e1-default-rtdb.firebaseio.com",
-            projectId: "dropbox-clone-d41e1",
-            storageBucket: "dropbox-clone-d41e1.appspot.com",
-            messagingSenderId: "742196552399",
-            appId: "1:742196552399:web:c8816842143576d7018dba",
-            measurementId: "G-E2FZTFRCYR"
+            
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -58,6 +51,24 @@ class DropBoxController {
                     this.btnRename.style.display = "none";
             }
         })
+
+        //Apagar arquivos
+        this.btnDelete.addEventListener('click', e=>{
+
+            this.removeTask().then(responses =>{
+
+                responses.forEach(response =>{
+                    if(response.files.key){ //se o arquivo exsite
+
+                        this.getFirebaseRef().child()
+                        (response.files.key).remove() //remove do Firebase
+                    }
+                })
+            }).catch(err=>{
+                console.error(err)
+            })
+        })
+
         //Renomear arquivo
         this.btnRename.addEventListener('click', e =>{
             
@@ -71,7 +82,7 @@ class DropBoxController {
             if(name){//se tem algum conteúdo
 
                 file.originalFilename = name //recebe o novo nome do arquivo
-                
+
                 this.getFirebaseRef().child(li.dataset.key).set(file) //encontra o key do arquivo; substitui e salva o nome
             }
         })
@@ -120,6 +131,33 @@ class DropBoxController {
         this.btnSendFieldEl.disabled = false
     }
 
+    ajax(url, method = 'GET', formData = new FormData(), onprogress = function(){}, onloadstart = function(){}){
+        return new Promise((resolve, reject)=>{
+
+            let ajax = new XMLHttpRequest();
+
+            ajax.open(method, url);
+
+            ajax.onload = event => {
+
+                try {
+                    resolve(JSON.parse(ajax.responseText))
+                }catch(e){
+                    reject(e)
+                }
+            }   
+            ajax.onerror = event => {
+
+                reject(event)
+            }
+            ajax.upload.onprogress = onprogress;
+
+            onloadstart()
+
+            ajax.send(formData)
+        })
+    }
+
     //Envia um ou vários arquivos com ajax
     uploadTask(files){
         let promises = [];
@@ -127,38 +165,20 @@ class DropBoxController {
         //Convertendo files (que é uma coleçaõ) em array com o spread
         [...files].forEach(file =>{
 
+            let formData = new FormData() //api que lê o arquivo
+
+            formData.append('input-file', file) //nome do arquivo, qual o arquivo
+
+            let promise = this.ajax('/upload', 'POST', formData, ()=>{
+
+                this.uploadProgress(event, file)
+
+            }, () => {
+                this.startUploadTime = Date.now()
+
+            })
             //Cada posição da variável promises recebe uma Promise
-            promises.push(new Promise((resolve, reject)=>{
-                
-                let ajax = new XMLHttpRequest();
-
-                ajax.open('POST', '/upload');
-
-                ajax.onload = event => {
-
-                    try {
-                        resolve(JSON.parse(ajax.responseText))
-                    }catch(e){
-                        reject(e)
-                    }
-                }   
-                ajax.onerror = event => {
-
-                    reject(event)
-                }
-                ajax.upload.onprogress = event => {
-                    //console.log(event)
-                    this.uploadProgress(event, file)
-                }
-
-                let formData = new FormData() //api que lê o arquivo
-
-                formData.append('input-file', file)//nome do arquivo, qual o arquivo
-
-                this.startUploadTime = Date.now() //Guarda o início do upload antes de envia-lo para que possa fazer a conta do tempo restante de carregamento
-
-                ajax.send(formData)
-            }))
+            promises.push(promise)
         })
         return Promise.all(promises) //resolve as promessas de cada envio de arquivo
     }
