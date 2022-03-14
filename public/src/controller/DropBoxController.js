@@ -164,6 +164,7 @@ class DropBoxController {
                 ${this.getFileIconView(file)}
                 <div class="name text-center">${file.originalFilename}</div>
             `
+        this.initEventsLi(li)
         return li 
     }
 
@@ -350,6 +351,52 @@ class DropBoxController {
 
                 this.listFileEl.appendChild(this.getFileView(data, key)) //renderiza na tela o arquivo
             })
+        })
+    }
+
+    initEventsLi(li){
+        li.addEventListener('click', e => {
+
+            //SHIFT
+            if(e.shiftKey){
+
+                let firstLi = this.listFileEl.querySelector('.selected')//identifica o primeiro li clicado
+
+                if(firstLi){ //segundo click, se já tem o primeiro
+
+                    let indexStart
+                    let indexEnd
+                    let lis = li.parentElement.childNodes //busca o pai (ul) e pega os filhos (li's)
+
+                    
+                    lis.forEach((el, index)=>{
+                        //procura a posição dos li's
+                        if(firstLi === el) indexStart = index
+                        if(li === el) indexEnd = index
+                    })
+
+                    let index = [indexStart, indexEnd].sort() //ordena os indexs na ordem crescente
+
+                    lis.forEach((el, i)=>{
+                        //se o indice for maior que O primeiro e menor que o segundo clicado
+                        if(i >= index[0] && i <= index[1]){
+
+                            el.classList.add('selected')
+                        }
+                    })
+                    return true //para a execução
+                }
+            }
+
+            //CTRL
+            if(!e.ctrlKey){ //se o ctrl não tava pressionado
+                
+                this.listFileEl.querySelectorAll('li.selected').forEach(el =>{ //procura todos os li selecionados
+                    
+                    el.classList.remove('selected') //remove a classe selected um por um
+                })
+            } 
+            li.classList.toggle('selected') //adiciona a classe de estilo css só do li clicado
         })
     }
 }
