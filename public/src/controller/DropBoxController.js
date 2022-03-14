@@ -7,14 +7,23 @@ class DropBoxController {
         this.progressBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
         this.nameFileEl = this.snackModalEl.querySelector('.filename');
         this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
+        this.listFileEl = document.querySelector("#list-of-files-and-directories")
 
         this.connectFirebase();
         this.initEvents();
+        this.readFiles();
     }
     connectFirebase(){
         // Your web app's Firebase configuration
         const firebaseConfig = {
-            
+            apiKey: "AIzaSyBBa_hcm2pSEzTqi3aOIIkuWvn2pTYtLwI",
+            authDomain: "dropbox-clone-d41e1.firebaseapp.com",
+            databaseURL: "https://dropbox-clone-d41e1-default-rtdb.firebaseio.com",
+            projectId: "dropbox-clone-d41e1",
+            storageBucket: "dropbox-clone-d41e1.appspot.com",
+            messagingSenderId: "742196552399",
+            appId: "1:742196552399:web:c8816842143576d7018dba",
+            measurementId: "G-E2FZTFRCYR"
         };
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -149,20 +158,18 @@ class DropBoxController {
 
         let li = document.createElement('li')
 
-        li.dataset.key = key
-        li.dataset.file = JSON.stringify(file)
+        li.dataset.key = key 
 
-        li.innerHTML = `
+        li.innerHTML = ` 
                 ${this.getFileIconView(file)}
-                <div class="name text-center">${file.name}</div>
+                <div class="name text-center">${file.originalFilename}</div>
             `
-        this.initEventsLi(li) //evento de quando uma li for selecionada
-        return li
+        return li 
     }
 
     //Pega o ícone para cada tipo de arquivo
     getFileIconView(file){
-        switch(file.type){
+        switch(file.mimetype){
 
             case 'folder':
                 return `
@@ -238,6 +245,7 @@ class DropBoxController {
 
             case 'video/mp4':
             case 'video/quicktime':
+            case 'video/webm':
                 return `
                     <svg width="160" height="160" viewBox="0 0 160 160" class="mc-icon-template-content tile__preview tile__preview--icon">
                         <title>content-video-large</title>
@@ -259,10 +267,10 @@ class DropBoxController {
                 `;
                 break;
 
-            case 'img/jpeg':
-            case 'img/jpg':
-            case 'img/png':
-            case 'img/gif':
+            case 'image/jpeg':
+            case 'image/jpg':
+            case 'image/png':
+            case 'image/gif':
                 return `
                     <svg version="1.1" id="Camada_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="160px" height="160px" viewBox="0 0 160 160" enable-background="new 0 0 160 160" xml:space="preserve">
                         <filter height="102%" width="101.4%" id="mc-content-unknown-large-a" filterUnits="objectBoundingBox" y="-.5%" x="-.7%">
@@ -325,5 +333,23 @@ class DropBoxController {
                     </svg>
                 `;
         }
+    }
+
+    readFiles(){
+        //on ouve o evento value que notifica mudanças nos dados e então retorna um snapshot/fotografia
+        this.getFirebaseRef().on('value', snapshot => {
+
+            this.listFileEl.innerHTML = ''
+            
+            snapshot.forEach(snapshotItem => { 
+
+                let key = snapshotItem.key
+                let data = snapshotItem.val()
+
+                console.log(key, data)
+
+                this.listFileEl.appendChild(this.getFileView(data, key)) //renderiza na tela o arquivo
+            })
+        })
     }
 }
